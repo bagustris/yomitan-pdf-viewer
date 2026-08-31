@@ -1,4 +1,7 @@
-const CACHE_NAME = "yomitan-pdf-viewer-v1";
+// update.sh replaces this with the PDF.js release being packaged. Keeping the
+// release in the cache name ensures that an updated viewer cannot keep serving
+// files from an older distribution.
+const CACHE_NAME = "yomitan-pdf-viewer-pdfjs-4.10.38";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -57,9 +60,19 @@ self.addEventListener("fetch", (event) => {
 
       return fetch(event.request)
         .then((response) => {
-          if (response.ok) {
+          // PDFs may be supplied by a local server and change independently of
+          // the viewer. Do not make those documents cache-first; the bundled
+          // PDF is already part of APP_SHELL.
+          if (response.ok && !requestUrl.pathname.endsWith(".pdf")) {
             const responseCopy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+            event.waitUntil(
+              caches
+                .open(CACHE_NAME)
+                .then((cache) => cache.put(event.request, responseCopy))
+                .catch(() => {
+                  // A cache write must not turn a successful request into a failure.
+                })
+            );
           }
           return response;
         })
