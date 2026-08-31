@@ -6,6 +6,12 @@
   "start_url": "./web/",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["tabbed", "standalone"],
+  "tab_strip": {
+    "new_tab_button": {
+      "url": "./web/"
+    }
+  },
   "background_color": "#ffffff",
   "theme_color": "#1f4b7a",
   "icons": [
